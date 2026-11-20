@@ -21,11 +21,15 @@ test("hold, release, randomized waiting, then bite", () => {
   assert.equal(s.phase, "charging");
   assert.ok(s.power > 0.9);
   release(s, () => 0.5);
+  assert.equal(s.phase, "casting");
+  for (let i = 0; i < 7; i++) step(s, 0.1, false);
   assert.equal(s.phase, "waiting");
   assert.equal(s.fish, FISH[4]);
   step(s, 0.1, false);
   assert.equal(s.phase, "waiting");
   for (let i = 0; i < 30; i++) step(s, 0.1, false);
+  assert.equal(s.phase, "bite");
+  for (let i = 0; i < 7; i++) step(s, 0.1, false);
   assert.equal(s.phase, "reeling");
 });
 test("all eight fish remain bounded and move smoothly", () => {
@@ -89,7 +93,7 @@ test("physics is stable at different frame rates", () => {
   assert.ok(Math.abs(a.progress - b.progress) < 0.001);
 });
 
-test('casts select all species and vary bite timing reproducibly', () => {
+test("casts select all species and vary bite timing reproducibly", () => {
   const random = rng(42);
   const selected = new Set<string>();
   const waits = new Set<number>();
@@ -105,24 +109,44 @@ test('casts select all species and vary bite timing reproducibly', () => {
   assert.ok(waits.size > 100);
 });
 
-test('different random seeds yield different smooth fish trajectories', () => {
-  const traces = [42, 73].map(seed => {
+test("different random seeds yield different smooth fish trajectories", () => {
+  const traces = [42, 73].map((seed) => {
     const random = rng(seed);
     const s = createState();
-    s.phase = 'reeling';
+    s.phase = "reeling";
     s.fish = FISH[7];
     const trace: number[] = [];
     for (let i = 0; i < 120; i++) {
-      s.progress = .5;
+      s.progress = 0.5;
       const previous = s.fishV;
       step(s, 1 / 120, false, random);
       // This short run remains away from the reflecting track edges.
-      assert.ok(Math.abs(s.fishV - previous) <= s.fish.acceleration / 120 + 1e-9);
+      assert.ok(
+        Math.abs(s.fishV - previous) <= s.fish.acceleration / 120 + 1e-9,
+      );
       trace.push(s.fishX);
     }
     return trace;
   });
   assert.notDeepEqual(traces[0], traces[1]);
-  assert.ok(new Set(FISH.map(f => f.speed)).size >= 8);
-  assert.ok(Math.max(...FISH.map(f => f.difficulty)) > Math.min(...FISH.map(f => f.difficulty)));
+  assert.ok(new Set(FISH.map((f) => f.speed)).size >= 8);
+  assert.ok(
+    Math.max(...FISH.map((f) => f.difficulty)) >
+      Math.min(...FISH.map((f) => f.difficulty)),
+  );
+});
+
+test("casting and bite animations gate the reeling phase", () => {
+  const s = createState();
+  press(s);
+  release(s, () => 0);
+  assert.equal(s.phase, "casting");
+  for (let i = 0; i < 6; i++) step(s, 0.1, false);
+  assert.equal(s.phase, "casting");
+  step(s, 0.1, false);
+  assert.equal(s.phase, "waiting");
+  for (let i = 0; i < 15; i++) step(s, 0.1, false);
+  assert.equal(s.phase, "bite");
+  for (let i = 0; i < 7; i++) step(s, 0.1, false);
+  assert.equal(s.phase, "reeling");
 });
