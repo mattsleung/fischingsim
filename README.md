@@ -33,28 +33,35 @@ npm run preview   # serve the built production bundle
 
 ## Play
 
+The camera is fixed and there is no player movement. One of three original coastal scene presets is selected at page load; it remains unchanged when you restart or fish again. Reload the page for another random selection.
+
 1. Hold the left mouse button on the water (or hold Space) to charge. Release near the power meter's peak to cast. Power gives a modest initial catch-progress bonus.
-2. Wait 1.5–4 seconds for a bite. A fish is chosen at cast time from eight fictional species.
+2. Watch the 0.65-second casting animation, then wait 1.5–4 seconds for a bite. A brief FISH ON cue precedes reeling. A fish is chosen at cast time from eight fictional species.
 3. Keep the glowing fish diamond inside the green control bar. Hold to accelerate right; release to accelerate left. The bar retains momentum, has drag, and stops at track boundaries.
 4. Tracking fills catch progress; missing drains it. Full progress catches the fish; zero loses it.
-5. Select **Cast again** or **Restart**. Restart cancels the current attempt while preserving session statistics. Reloading clears session statistics.
+5. A successful catch reveals an original illustrated fish, rarity, difficulty, tracking accuracy, and fight time. An escape has its own result animation. Select **Cast again** or **Restart**. Restart cancels the current attempt while preserving session statistics. Reloading clears session statistics.
 
 Best tracking accuracy is the highest percentage of reeling time spent overlapping the fish in a completed attempt, including escaped fish. Difficulty runs from 1–8.
 
 ## Structure
 
+- `src/fish.ts`: eight species definitions, rarity, difficulty, color, speed, acceleration, direction-change frequency, and drift/dart/surge behavior.
+- `src/fishBehavior.ts`: smooth randomized target velocities with species-specific movement profiles.
+- `src/scenes.ts`: three session-level static scene presets.
+- `src/FishArt.tsx`: original geometric SVG fish illustrations and species markings.
 - `src/simulation.ts`: independent state machine and fish/player physics; injectable randomness enables deterministic tests. Positions are normalized, movement uses acceleration and velocity, and delta time is capped at 100 ms with 120 Hz substeps to avoid jumps after a hidden tab resumes.
-- `src/render.ts`: Canvas scenery and fishing track rendering; independent of React.
+- `src/render.ts`: original Canvas scenery cached on a background layer, plus a separate animated rod, line, and bobber layer. The React HUD renders the normalized fishing track for crisp responsive controls.
 - `src/main.tsx`: pointer/keyboard input, requestAnimationFrame loop, responsive high-DPI canvas sizing, React interface, and session statistics. UI snapshots update at about 25 Hz; simulation and canvas run on each animation frame.
 - `src/simulation.test.ts`: casting, bite timing, all fish movement, boundaries, inertia, win/loss, and frame-rate consistency tests.
 - `src/style.css`: responsive ocean interface with no required remote assets.
+
+All scene art, fish illustrations, and interface elements are original code-drawn artwork; no Roblox or Fisch assets are included.
 
 Future modes can reuse the input/render loop and introduce their own simulation state. Phase 1 includes standard reeling only; Pinion's Aria, adjustable rod settings, persistent catch history, and alternative casting modes are intentionally deferred.
 
 No credentials, database, external API, or runtime network connection is required. Vite binds to all interfaces for cloud development; use `npm run dev -- --host 127.0.0.1` if you want local-only access.
 
 Stop the server with **Control-C** in Terminal. Start it again with the same `npm run dev` command; dependencies only need reinstalling when the lockfile changes. If port 5173 is occupied, use the URL Vite prints instead. If `node` or `npm` is not found after installation, open a new Terminal window. Do not open `index.html` directly in Finder; Vite must serve the app.
-
 
 ## Deploy to GitHub Pages
 
