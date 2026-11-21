@@ -134,7 +134,7 @@ export function drawBackground(
   vignette.addColorStop(1, "#020c17b0");
   c.fillStyle = vignette;
   c.fillRect(0, 0, w, h);
-  // Dock corners frame a stationary first-person fishing viewpoint.
+  // Stationary third-person dock, original cuboid avatar viewed from behind.
   polygon(
     c,
     [
@@ -162,6 +162,95 @@ export function drawBackground(
     ],
     "#242c30",
   );
+  polygon(
+    c,
+    [
+      [w * 0.2, h],
+      [w * 0.34, h * 0.76],
+      [w * 0.59, h * 0.76],
+      [w * 0.77, h],
+    ],
+    "#44443d",
+  );
+  for (let i = 0; i < 10; i++) {
+    const y = h * (0.77 + i * 0.028);
+    c.strokeStyle = "#1b272988";
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(w * (0.34 - i * 0.016), y);
+    c.lineTo(w * (0.59 + i * 0.018), y);
+    c.stroke();
+  }
+  drawAvatar(c, w, h);
+}
+
+function drawAvatar(c: CanvasRenderingContext2D, w: number, h: number) {
+  const unit = Math.min(h * 0.28, w * 0.47) / 240;
+  c.save();
+  c.translate(w * 0.43, h * 0.83);
+  c.scale(unit, unit);
+  c.fillStyle = "#07151e66";
+  c.beginPath();
+  c.ellipse(8, 7, 78, 15, 0, 0, Math.PI * 2);
+  c.fill();
+  const block = (
+    x: number,
+    y: number,
+    bw: number,
+    bh: number,
+    front: string,
+    side: string,
+    top: string,
+  ) => {
+    c.fillStyle = front;
+    c.fillRect(x, y, bw, bh);
+    polygon(
+      c,
+      [
+        [x + bw, y],
+        [x + bw + 12, y - 9],
+        [x + bw + 12, y + bh - 9],
+        [x + bw, y + bh],
+      ],
+      side,
+    );
+    polygon(
+      c,
+      [
+        [x, y],
+        [x + 12, y - 9],
+        [x + bw + 12, y - 9],
+        [x + bw, y],
+      ],
+      top,
+    );
+  };
+  // Boots, legs, jacket, squared head and swept block hair. No logo or borrowed textures.
+  block(-38, -83, 35, 80, "#26323b", "#1c2630", "#394750");
+  block(5, -83, 35, 80, "#26323b", "#1c2630", "#394750");
+  block(-41, -12, 39, 15, "#151d25", "#111922", "#29333b");
+  block(4, -12, 40, 15, "#151d25", "#111922", "#29333b");
+  block(-46, -169, 92, 91, "#597b79", "#304d54", "#75918b");
+  block(-73, -165, 27, 78, "#c6b18b", "#968362", "#ddcba5");
+  c.save();
+  c.translate(52, -139);
+  c.rotate(-0.55);
+  block(-6, -20, 28, 68, "#c6b18b", "#968362", "#ddcba5");
+  c.restore();
+  block(-32, -226, 62, 55, "#c7b58d", "#93876c", "#e0cfaa");
+  block(-35, -235, 69, 28, "#28302f", "#151f25", "#414542");
+  c.fillStyle = "#242c2d";
+  c.fillRect(-35, -211, 13, 25);
+  c.fillRect(25, -213, 10, 18);
+  // Original fishing vest seams and a small canvas backpack.
+  block(-28, -157, 53, 57, "#817755", "#5a573f", "#9b9069");
+  c.strokeStyle = "#bab28b";
+  c.lineWidth = 3;
+  c.strokeRect(-19, -147, 34, 36);
+  c.fillStyle = "#4a564f";
+  c.fillRect(-40, -166, 8, 83);
+  c.fillRect(31, -166, 8, 83);
+  c.restore();
 }
 
 export function draw(
@@ -174,6 +263,7 @@ export function draw(
   const lineOut = [
     "casting",
     "waiting",
+    "shake",
     "bite",
     "reeling",
     "caught",
@@ -181,25 +271,25 @@ export function draw(
   ].includes(s.phase);
   const cast = s.phase === "casting" ? Math.min(1, s.time / 0.65) : 1;
   const launch = 1 - (1 - cast) ** 2;
-  let bx = w * (0.53 - 0.19 * (1 - launch)),
+  let bx = w * (0.61 - 0.14 * (1 - launch)),
     by = h * (0.55 + 0.32 * (1 - launch)) - Math.sin(cast * Math.PI) * h * 0.22;
   if (s.phase === "caught") {
     by -= Math.min(1, s.time / 0.7) * h * 0.16;
   }
-  const tipX = w * 0.39,
-    tipY = h * (s.phase === "charging" ? 0.57 + s.power * 0.07 : 0.57);
+  const tipX = w * 0.58,
+    tipY = h * (s.phase === "charging" ? 0.38 + s.power * 0.07 : 0.38);
   c.lineCap = "round";
   c.strokeStyle = "#15212b";
-  c.lineWidth = 9;
+  c.lineWidth = 6;
   c.beginPath();
-  c.moveTo(w * 0.22, h * 1.08);
-  c.quadraticCurveTo(w * 0.3, h * 0.72, tipX, tipY);
+  c.moveTo(w * 0.47, h * 0.69);
+  c.quadraticCurveTo(w * 0.55, h * 0.5, tipX, tipY);
   c.stroke();
   c.strokeStyle = "#b0a687";
   c.lineWidth = 3;
   c.beginPath();
-  c.moveTo(w * 0.22, h * 1.08);
-  c.quadraticCurveTo(w * 0.3, h * 0.72, tipX, tipY);
+  c.moveTo(w * 0.47, h * 0.69);
+  c.quadraticCurveTo(w * 0.55, h * 0.5, tipX, tipY);
   c.stroke();
   if (lineOut) {
     c.strokeStyle = "#d6e6df77";
