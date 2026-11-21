@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { createState, press, release, step, type State } from "./simulation";
+import {
+  createState,
+  press,
+  release,
+  step,
+  shake,
+  REQUIRED_SHAKES,
+  type State,
+} from "./simulation";
 import { chooseScene } from "./scenes";
 import { draw, drawBackground } from "./render";
 import { FishArt } from "./FishArt";
@@ -91,6 +99,10 @@ function App() {
       if (e.code !== "Space" || e.target instanceof HTMLButtonElement) return;
       e.preventDefault();
       if (!e.repeat) {
+        if (sim.current.phase === "shake") {
+          shake(sim.current);
+          return;
+        }
         keyboard.current = true;
         press(sim.current);
       }
@@ -134,6 +146,7 @@ function App() {
     charging: "CHARGING",
     casting: "CASTING",
     waiting: "WAITING",
+    shake: "SHAKE",
     bite: "BITE",
     reeling: "REELING",
     caught: "CAUGHT",
@@ -150,7 +163,7 @@ function App() {
         if (!keyboard.current) release(sim.current);
       }}
       role="application"
-      aria-label="Fishing simulator. Hold left mouse or Space to charge, release to cast. During reeling hold to accelerate right, release to accelerate left."
+      aria-label="Fishing simulator. Hold left mouse or Space to charge, release to cast. Click the shake circle three times after a bite. During reeling hold to accelerate right, release to accelerate left."
     >
       <canvas ref={background} className="background" aria-hidden="true" />
       <canvas ref={canvas} className="foreground" aria-hidden="true" />
@@ -263,6 +276,36 @@ function App() {
           </p>
         </div>
       )}
+      {view.phase === "shake" && (
+        <section className="shake-stage">
+          <div className="shake-heading">
+            <h2>Something took the bait!</h2>
+            <p>Click the circle to set the hook</p>
+          </div>
+          <button
+            className="shake-circle"
+            style={{
+              left: `${view.shakeX * 100}%`,
+              top: `${view.shakeY * 100}%`,
+            }}
+            onClick={() => {
+              shake(sim.current);
+              setView({ ...sim.current });
+            }}
+            aria-label={`Shake ${view.shakes + 1} of ${REQUIRED_SHAKES}`}
+          >
+            <span className="shake-ripple" />
+            <span className="shake-word">SHAKE</span>
+            <svg className="shake-mouse" width="17" height="22" viewBox="0 0 20 26" aria-hidden="true"><rect x="3" y="2" width="14" height="22" rx="7" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M10 2v9M3 11h14" stroke="currentColor" strokeWidth="1.5"/></svg>
+          </button>
+          <div className="shake-count">
+            {Array.from({ length: REQUIRED_SHAKES }, (_, i) => (
+              <i key={i} className={i < view.shakes ? "complete" : ""} />
+            ))}
+            <span>SET THE HOOK</span>
+          </div>
+        </section>
+      )}
       {view.phase === "bite" && (
         <div className="bite-message">
           <strong>!</strong>
@@ -310,9 +353,7 @@ function App() {
           <div className="catch-meter">
             <i style={{ width: `${view.progress * 100}%` }} />
           </div>
-          <p className="reel-help">
-            Keep the fish inside your bar. Anticipate its movement.
-          </p>
+          <p className="reel-help">Keep the fish within the white bar!</p>
         </section>
       )}
       {finished && (

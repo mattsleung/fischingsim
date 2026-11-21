@@ -4,6 +4,8 @@ import {
   createState,
   press,
   release,
+  shake,
+  REQUIRED_SHAKES,
   step,
   FISH,
   BAR_WIDTH,
@@ -28,6 +30,8 @@ test("hold, release, randomized waiting, then bite", () => {
   step(s, 0.1, false);
   assert.equal(s.phase, "waiting");
   for (let i = 0; i < 30; i++) step(s, 0.1, false);
+  assert.equal(s.phase, "shake");
+  for (let i = 0; i < REQUIRED_SHAKES; i++) shake(s, () => 0.5);
   assert.equal(s.phase, "bite");
   for (let i = 0; i < 7; i++) step(s, 0.1, false);
   assert.equal(s.phase, "reeling");
@@ -146,7 +150,37 @@ test("casting and bite animations gate the reeling phase", () => {
   step(s, 0.1, false);
   assert.equal(s.phase, "waiting");
   for (let i = 0; i < 15; i++) step(s, 0.1, false);
+  assert.equal(s.phase, "shake");
+  for (let i = 0; i < REQUIRED_SHAKES; i++) shake(s, () => 0.5);
   assert.equal(s.phase, "bite");
+  for (let i = 0; i < 7; i++) step(s, 0.1, false);
+  assert.equal(s.phase, "reeling");
+});
+
+test("shake prompts are gated, bounded, and require three deliberate inputs", () => {
+  const s = createState();
+  shake(s);
+  assert.equal(s.shakes, 0);
+  s.phase = "shake";
+  const random = rng(62);
+  shake(s, random);
+  assert.equal(s.phase, "shake");
+  assert.equal(s.shakes, 1);
+  assert.ok(
+    s.shakeX >= 0.32 && s.shakeX <= 0.68 && s.shakeY >= 0.36 && s.shakeY <= 0.6,
+  );
+  for (let i = 0; i < 100; i++) step(s, 0.1, false);
+  assert.equal(
+    s.phase,
+    "shake",
+    "waiting does not bypass the interactive hook prompt",
+  );
+  shake(s, random);
+  assert.equal(s.phase, "shake");
+  shake(s, random);
+  assert.equal(s.phase, "bite");
+  shake(s);
+  assert.equal(s.shakes, REQUIRED_SHAKES);
   for (let i = 0; i < 7; i++) step(s, 0.1, false);
   assert.equal(s.phase, "reeling");
 });

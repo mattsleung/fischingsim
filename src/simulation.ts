@@ -7,6 +7,7 @@ export type Phase =
   | "charging"
   | "casting"
   | "waiting"
+  | "shake"
   | "bite"
   | "reeling"
   | "caught"
@@ -17,6 +18,9 @@ export type State = {
   power: number;
   castPower: number;
   wait: number;
+  shakes: number;
+  shakeX: number;
+  shakeY: number;
   fish: Fish;
   fishX: number;
   fishV: number;
@@ -37,6 +41,9 @@ export function createState(): State {
     power: 0,
     castPower: 0,
     wait: 0,
+    shakes: 0,
+    shakeX: 0.56,
+    shakeY: 0.48,
     fish: FISH[0],
     fishX: 0.5,
     fishV: 0,
@@ -64,6 +71,19 @@ export function release(s: State, rng = Math.random) {
     s.fish = FISH[Math.min(FISH.length - 1, Math.floor(rng() * FISH.length))];
   }
 }
+export const REQUIRED_SHAKES = 3;
+export function shake(s: State, rng = Math.random) {
+  if (s.phase !== "shake") return;
+  s.shakes++;
+  if (s.shakes >= REQUIRED_SHAKES) {
+    s.phase = "bite";
+    s.time = 0;
+  } else {
+    s.shakeX = 0.32 + rng() * 0.36;
+    s.shakeY = 0.36 + rng() * 0.24;
+  }
+}
+
 // All positions are normalized. Small substeps make acceleration independent of display refresh rate.
 export function step(s: State, dt: number, held: boolean, rng = Math.random) {
   let remaining = clamp(dt, 0, 0.1);
@@ -77,7 +97,7 @@ export function step(s: State, dt: number, held: boolean, rng = Math.random) {
       s.time = 0;
     }
     if (s.phase === "waiting" && s.time >= s.wait) {
-      s.phase = "bite";
+      s.phase = "shake";
       s.time = 0;
     }
     if (s.phase === "bite" && s.time >= 0.65) {

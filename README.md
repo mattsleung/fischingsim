@@ -33,11 +33,11 @@ npm run preview   # serve the built production bundle
 
 ## Play
 
-The camera is fixed and there is no player movement. One of three original coastal scene presets is selected at page load; it remains unchanged when you restart or fish again. Reload the page for another random selection.
+The camera is fixed and there is no player movement. A softly blurred, original block-shaped angler is drawn into the static third-person dock backdrop. Only the rod, line, bobber, and fishing overlays animate. One of three original coastal scene presets is selected at page load; it remains unchanged when you restart or fish again. Reload the page for another random selection.
 
 1. Hold the left mouse button on the water (or hold Space) to charge. Release near the power meter's peak to cast. Power gives a modest initial catch-progress bonus.
-2. Watch the 0.65-second casting animation, then wait 1.5–4 seconds for a bite. A brief FISH ON cue precedes reeling. A fish is chosen at cast time from eight fictional species.
-3. Keep the glowing fish diamond inside the green control bar. Hold to accelerate right; release to accelerate left. The bar retains momentum, has drag, and stops at track boundaries.
+2. Watch the 0.65-second casting animation, then wait 1.5–4 seconds for a bite. Click the moving **SHAKE** circle three times to set the hook; the FISH ON cue then leads into reeling. Space also activates a shake prompt, and a focused prompt supports Enter. There is no timer on the shake phase. A fish is chosen at cast time from eight fictional species.
+3. Keep the glowing fish diamond inside the white control bar. Hold to accelerate right; release to accelerate left. The bar retains momentum, has drag, and stops at track boundaries.
 4. Tracking fills catch progress; missing drains it. Full progress catches the fish; zero loses it.
 5. A successful catch reveals an original illustrated fish, rarity, difficulty, tracking accuracy, and fight time. An escape has its own result animation. Select **Cast again** or **Restart**. Restart cancels the current attempt while preserving session statistics. Reloading clears session statistics.
 
@@ -52,7 +52,7 @@ Best tracking accuracy is the highest percentage of reeling time spent overlappi
 - `src/simulation.ts`: independent state machine and fish/player physics; injectable randomness enables deterministic tests. Positions are normalized, movement uses acceleration and velocity, and delta time is capped at 100 ms with 120 Hz substeps to avoid jumps after a hidden tab resumes.
 - `src/render.ts`: original Canvas scenery cached on a background layer, plus a separate animated rod, line, and bobber layer. The React HUD renders the normalized fishing track for crisp responsive controls.
 - `src/main.tsx`: pointer/keyboard input, requestAnimationFrame loop, responsive high-DPI canvas sizing, React interface, and session statistics. UI snapshots update at about 25 Hz; simulation and canvas run on each animation frame.
-- `src/simulation.test.ts`: casting, bite timing, all fish movement, boundaries, inertia, win/loss, and frame-rate consistency tests.
+- `src/simulation.test.ts`: casting, bite timing, shake gating and prompt positions, all fish movement, boundaries, inertia, win/loss, and frame-rate consistency tests.
 - `src/style.css`: responsive ocean interface with no required remote assets.
 
 All scene art, fish illustrations, and interface elements are original code-drawn artwork; no Roblox or Fisch assets are included.
@@ -80,3 +80,7 @@ For a private repository, your GitHub plan must support Pages. If deployment is 
 To check the production site locally, run `npm run build` then `npm run preview`, and open `http://localhost:4173/fischingsim/`. The app targets current Chrome and Safari (Safari 16.4+ for Canvas roundRect). Validate mouse hold/release and a complete catch on both browsers on your Mac; Linux Chromium checks do not establish native macOS Safari compatibility.
 
 If the repository is renamed, update `base` in `vite.config.ts` and the prefix removed by `scripts/export-standalone.mjs`. The standalone HTML export remains available through `npm run export:play`.
+
+## Visual direction
+
+The current presentation uses a fixed, softly blurred third-person angler, high-contrast outlined fishing text, an interactive circle prompt, a horizontal white catch bar, a dark fish marker, and a green progress meter. All geometry and illustrations are original. No reference screenshots were attached in the implementation conversation, so exact screenshot layout comparisons remain pending. The reference game is not connected to this app.
